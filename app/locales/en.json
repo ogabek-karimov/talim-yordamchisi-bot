@@ -12,6 +12,7 @@
   "menu.btn_subscription": "⭐ My subscription",
   "menu.btn_help": "ℹ️ Help",
   "menu.btn_apply": "📝 Submit application",
+  "menu.webapp_missing": "⚠️ The Mini App URL is not configured yet. Put the server online (deploy to Render or an HTTPS tunnel) and set WEBHOOK_BASE — then an \"Open mini app\" button appears here. For now use the admin commands: /pending, /adduser, /addadmin, /subscription.",
   "help.text": "With this bot you can:\n• take DTM/attestation tests;\n• get step-by-step help with homework.\n\nTo use the bot, first submit an application — once an admin approves it, all features unlock. You can change the language any time with /language.",
   "apply.intro": "The application needs a few details.",
   "apply.ask_name": "Type your full name:",

@@ -9,6 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.bot.filters import text_is
 from app.bot.keyboards import language_inline, main_menu
+from app.config import settings
 from app.i18n import SUPPORTED, t
 from app.models import Status, User
 from app.services import users as users_svc
@@ -23,6 +24,8 @@ async def _send_menu(message: Message, user: User) -> None:
         return
     if user.is_approved:
         await message.answer(t("menu.title_approved", lang), reply_markup=main_menu(user))
+        if not settings.webapp_url:
+            await message.answer(t("menu.webapp_missing", lang))
     else:
         await message.answer(t("menu.pending", lang), reply_markup=main_menu(user))
 

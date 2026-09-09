@@ -12,6 +12,7 @@
   "menu.btn_subscription": "⭐ Mening obunam",
   "menu.btn_help": "ℹ️ Yordam",
   "menu.btn_apply": "📝 Ariza qoldirish",
+  "menu.webapp_missing": "⚠️ Mini ilova manzili hali sozlanmagan. Serverni internetga chiqarib (Render deploy yoki HTTPS tunnel), WEBHOOK_BASE ni o'rnating — shundan keyin bu yerda «Mini ilovani ochish» tugmasi paydo bo'ladi. Hozircha admin buyruqlaridan foydalaning: /pending, /adduser, /addadmin, /subscription.",
   "help.text": "Bu bot orqali:\n• DTM/attestatsiya testlarini yechasiz;\n• uy vazifalari bo'yicha qadam-baqadam yordam olasiz.\n\nBotdan foydalanish uchun avval ariza qoldiring — administrator uni tasdiqlagach, barcha imkoniyatlar ochiladi. Tilni istalgan vaqtda /language buyrug'i bilan almashtirish mumkin.",
   "apply.intro": "Ariza qoldirish uchun bir nechta ma'lumot kerak bo'ladi.",
   "apply.ask_name": "Ism va familiyangizni to'liq yozing:",

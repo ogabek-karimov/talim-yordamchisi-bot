@@ -12,6 +12,7 @@
   "menu.btn_subscription": "⭐ Meniń jazılıwım",
   "menu.btn_help": "ℹ️ Járdem",
   "menu.btn_apply": "📝 Arza qaldırıw",
+  "menu.webapp_missing": "⚠️ Mini ilova mánzili ele sazlanbaǵan. Serverdi internetke shıǵarıp (Render deploy yamasa HTTPS tunnel), WEBHOOK_BASE di ornatıń — sonnan keyin bul jerde «Mini ilovanı ashıw» túymesi payda boladı. Házirshe admin buyrıqlarınan paydalanıń: /pending, /adduser, /addadmin, /subscription.",
   "help.text": "Bul bot arqalı siz:\n• DTM/attestaciya testlerin sheshesiz;\n• úy jumısları boyınsha basqıshpa-basqısh járdem alasız.\n\nBottan paydalanıw ushın dáslep arza qaldırıń — administrator onı tastıyıqlaǵannan keyin barlıq múmkinshilikler ashıladı. Tildi qálegen waqıtta /language buyrıǵı menen almastırıwıńız múmkin.",
   "apply.intro": "Arza qaldırıw ushın bir neshe maǵlıwmat kerek boladı.",
   "apply.ask_name": "Atıńız hám familiyańızdı tolıq jazıń:",
