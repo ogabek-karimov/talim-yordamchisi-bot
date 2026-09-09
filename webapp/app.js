@@ -41,6 +41,39 @@
   };
   const screen = () => $("#screen");
   const clear = (node) => { while (node.firstChild) node.removeChild(node.firstChild); };
+
+  // AI replies sometimes arrive with LaTeX / Markdown; the chat shows plain text,
+  // so convert to readable Unicode + minimal safe HTML.
+  const SUP = { "0": "⁰", "1": "¹", "2": "²", "3": "³", "4": "⁴", "5": "⁵", "6": "⁶", "7": "⁷", "8": "⁸", "9": "⁹", "+": "⁺", "-": "⁻", "n": "ⁿ", "i": "ⁱ" };
+  const SUB = { "0": "₀", "1": "₁", "2": "₂", "3": "₃", "4": "₄", "5": "₅", "6": "₆", "7": "₇", "8": "₈", "9": "₉" };
+  function formatAi(raw) {
+    let s = String(raw == null ? "" : raw);
+    s = s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    s = s.replace(/\$\$?/g, "").replace(/\\\[|\\\]|\\\(|\\\)/g, "");
+    const rep = [
+      [/\\cdot/g, "·"], [/\\times/g, "×"], [/\\div/g, "÷"], [/\\approx/g, "≈"],
+      [/\\neq?/g, "≠"], [/\\leq?/g, "≤"], [/\\geq?/g, "≥"], [/\\pm/g, "±"],
+      [/\\infty/g, "∞"], [/\\pi/g, "π"], [/\\degree|\\deg/g, "°"],
+      [/\\left|\\right/g, ""], [/\\,|\\;|\\!|\\:|\\quad|\\qquad/g, " "],
+    ];
+    for (const [re, v] of rep) s = s.replace(re, v);
+    s = s.replace(/\\sqrt\s*\{([^{}]*)\}/g, "√($1)");
+    s = s.replace(/\\frac\s*\{([^{}]*)\}\s*\{([^{}]*)\}/g, "($1)/($2)");
+    s = s.replace(/\\(?:text|mathrm|mathbf|mathit|mathsf|boxed|operatorname)\s*\{([^{}]*)\}/g, "$1");
+    s = s.replace(/\\[a-zA-Z]+\s?/g, "");
+    s = s.replace(/\^\{([^{}]+)\}/g, (_, g) => [...g].map((c) => SUP[c] || c).join(""));
+    s = s.replace(/\^([0-9niN+\-])/g, (_, g) => SUP[g] || "^" + g);
+    s = s.replace(/_\{([0-9]+)\}/g, (_, g) => [...g].map((c) => SUB[c] || c).join(""));
+    s = s.replace(/([A-Za-z])_([0-9])\b/g, (_, a, d) => a + (SUB[d] || "_" + d));
+    s = s.replace(/_\{([^{}]+)\}/g, "_$1");
+    s = s.replace(/[{}]/g, "");
+    s = s.replace(/^\s{0,3}#{1,6}\s*(.+?)\s*#*\s*$/gm, (_, t) => "<b>" + t.replace(/\*\*|__/g, "") + "</b>");
+    s = s.replace(/\*\*([^*\n]+)\*\*/g, "<b>$1</b>").replace(/__([^_\n]+)__/g, "<b>$1</b>");
+    s = s.replace(/(^|[\s(])\*([^*\n]+)\*(?=$|[\s).,:;])/g, "$1$2");
+    s = s.replace(/^\s*[*\-]\s+/gm, "• ");
+    s = s.replace(/^\s*([-*_]\s?){3,}\s*$/gm, "");
+    return s.replace(/\n{3,}/g, "\n\n").trim();
+  }
   const haptic = (type = "light") => { try { tg && tg.HapticFeedback.impactOccurred(type); } catch {} };
 
   let toastTimer = null;
@@ -337,7 +370,7 @@
       const res = await api("/api/ai/explain", { method: "POST", body: {
         body: r.body, options: r.options, correct_index: r.correct_index, chosen_index: r.chosen_index,
       }});
-      card.append(el("div", { class: "msg bot", style: "max-width:100%;margin-top:8px", text: res.reply }));
+      card.append(el("div", { class: "msg bot", style: "max-width:100%;margin-top:8px", html: formatAi(res.reply) }));
       btn.remove();
     } catch (e) {
       btn.disabled = false; btn.textContent = T("app.test.explain");
@@ -362,7 +395,10 @@
   }
 
   function renderMsg(m) {
-    const node = el("div", { class: "msg " + (m.role === "user" ? "user" : "bot"), text: m.content || "" });
+    const isUser = m.role === "user";
+    const node = isUser
+      ? el("div", { class: "msg user", text: m.content || "" })
+      : el("div", { class: "msg bot", html: formatAi(m.content || "") });
     if (m.image) node.append(el("img", { src: m.image, alt: "", style: "max-width:200px" }));
     return node;
   }

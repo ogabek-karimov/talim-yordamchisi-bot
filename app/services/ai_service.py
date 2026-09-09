@@ -47,7 +47,17 @@ def build_system_prompt(lang: str, mode: str) -> str:
             "method so the student learns. Give the final answer clearly at the end. "
             "If the problem is ambiguous, state your assumptions. Keep it focused."
         )
-    return f"{task}\n{lang_line}\nUse simple formatting. Avoid huge walls of text."
+    format_rules = (
+        "OUTPUT FORMAT — very important, the client shows plain text:\n"
+        "- Do NOT use LaTeX or math delimiters. No $, no $$, no \\( \\), no backslash "
+        "commands like \\cdot, \\frac, \\text, \\mathbf, \\times, \\sqrt.\n"
+        "- Write math in plain form with Unicode symbols: · × ÷ ² ³ √ ≈ ≤ ≥ ° ½ π. "
+        "Example: area = a · b, 3 cm², √16 = 4, 1/2.\n"
+        "- Do NOT use Markdown headings (#) or bold/italic markers (**, __). "
+        "Use short labels followed by a colon and plain line breaks instead.\n"
+        "- Use simple '-' bullets and blank lines between steps. Keep it compact."
+    )
+    return f"{task}\n{lang_line}\n{format_rules}"
 
 
 # --- rate limiting ------------------------------------------------
@@ -182,19 +192,38 @@ async def _gemini(system, user_text, history, image) -> str:
         parts.append({"inline_data": {"mime_type": mime, "data": _b64(raw)}})
     contents.append({"role": "user", "parts": parts})
 
-    url = (
-        "https://generativelanguage.googleapis.com/v1beta/models/"
-        f"{settings.gemini_model}:generateContent"
-    )
-    data = await _post_json(
-        url,
-        params={"key": settings.gemini_api_key},
-        json={
-            "systemInstruction": {"parts": [{"text": system}]},
-            "contents": contents,
-            "generationConfig": {"temperature": 0.3},
-        },
-    )
+    body = {
+        "systemInstruction": {"parts": [{"text": system}]},
+        "contents": contents,
+        "generationConfig": {"temperature": 0.3},
+    }
+    # Try the configured model, then stable fallbacks — a single model can be
+    # renamed by Google or temporarily overloaded ("high demand" 503s).
+    candidates = list(dict.fromkeys(
+        [
+            settings.gemini_model,
+            "gemini-flash-latest",
+            "gemini-flash-lite-latest",
+            "gemini-2.5-flash",
+        ]
+    ))
+    last: Exception | None = None
+    data = None
+    for model in candidates:
+        try:
+            data = await _post_json(
+                "https://generativelanguage.googleapis.com/v1beta/models/"
+                f"{model}:generateContent",
+                params={"key": settings.gemini_api_key},
+                json=body,
+                attempts=2,
+            )
+            break
+        except Exception as exc:  # noqa: BLE001 - try the next model
+            logger.warning("gemini model %s failed: %s", model, exc)
+            last = exc
+    if data is None:
+        raise AIError(str(last) if last else "gemini request failed")
     try:
         parts = data["candidates"][0]["content"]["parts"]
     except (KeyError, IndexError) as exc:
