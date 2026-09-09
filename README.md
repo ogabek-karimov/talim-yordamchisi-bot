@@ -183,7 +183,7 @@ Dockerfile  render.yaml  .env.example
 
 - **groq / openai** → `OPENAI_BASE_URL`, `OPENAI_API_KEY`, `OPENAI_MODEL`
   (Groq: `https://api.groq.com/openai/v1`, model `llama-3.3-70b-versatile`).
-- **gemini** → `GEMINI_API_KEY`, `GEMINI_MODEL` (`gemini-2.0-flash`) — rasmli uy
+- **gemini** → `GEMINI_API_KEY`, `GEMINI_MODEL` (`gemini-flash-latest`) — rasmli uy
   vazifasini ham qo'llaydi.
 - **ollama** → `OLLAMA_BASE_URL` (masalan `http://sizning-server:11434`), `OLLAMA_MODEL`.
 

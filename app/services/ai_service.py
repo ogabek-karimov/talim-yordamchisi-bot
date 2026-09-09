@@ -101,6 +101,27 @@ def _b64(data: bytes) -> str:
     return base64.b64encode(data).decode()
 
 
+async def _post_json(url: str, *, headers=None, params=None, json=None, attempts: int = 3) -> dict:
+    """POST returning parsed JSON, retrying transient failures (5xx / network / timeout)."""
+    import asyncio
+
+    last: Exception | None = None
+    for i in range(attempts):
+        try:
+            async with httpx.AsyncClient(timeout=TIMEOUT) as client:
+                resp = await client.post(url, headers=headers, params=params, json=json)
+            if resp.status_code >= 500:
+                last = AIError(f"{resp.status_code} {resp.text[:200]}")
+            else:
+                resp.raise_for_status()
+                return resp.json()
+        except (httpx.TransportError, httpx.TimeoutException) as exc:
+            last = exc
+        if i < attempts - 1:
+            await asyncio.sleep(1.5 * (i + 1))
+    raise AIError(str(last) if last else "request failed")
+
+
 async def _openai_compatible(system, user_text, history, image) -> str:
     if not (settings.openai_api_key and settings.openai_base_url):
         raise AIError("OpenAI-compatible endpoint not configured")
@@ -121,14 +142,11 @@ async def _openai_compatible(system, user_text, history, image) -> str:
         messages.append({"role": "user", "content": user_text})
 
     url = settings.openai_base_url.rstrip("/") + "/chat/completions"
-    async with httpx.AsyncClient(timeout=TIMEOUT) as client:
-        resp = await client.post(
-            url,
-            headers={"Authorization": f"Bearer {settings.openai_api_key}"},
-            json={"model": settings.openai_model, "messages": messages, "temperature": 0.3},
-        )
-        resp.raise_for_status()
-        data = resp.json()
+    data = await _post_json(
+        url,
+        headers={"Authorization": f"Bearer {settings.openai_api_key}"},
+        json={"model": settings.openai_model, "messages": messages, "temperature": 0.3},
+    )
     return data["choices"][0]["message"]["content"].strip()
 
 
@@ -143,12 +161,9 @@ async def _ollama(system, user_text, history, image) -> str:
     messages.append(user_msg)
 
     url = settings.ollama_base_url.rstrip("/") + "/api/chat"
-    async with httpx.AsyncClient(timeout=TIMEOUT) as client:
-        resp = await client.post(
-            url, json={"model": settings.ollama_model, "messages": messages, "stream": False}
-        )
-        resp.raise_for_status()
-        data = resp.json()
+    data = await _post_json(
+        url, json={"model": settings.ollama_model, "messages": messages, "stream": False}
+    )
     return (data.get("message") or {}).get("content", "").strip()
 
 
@@ -171,19 +186,22 @@ async def _gemini(system, user_text, history, image) -> str:
         "https://generativelanguage.googleapis.com/v1beta/models/"
         f"{settings.gemini_model}:generateContent"
     )
-    async with httpx.AsyncClient(timeout=TIMEOUT) as client:
-        resp = await client.post(
-            url,
-            params={"key": settings.gemini_api_key},
-            json={
-                "systemInstruction": {"parts": [{"text": system}]},
-                "contents": contents,
-                "generationConfig": {"temperature": 0.3},
-            },
-        )
-        resp.raise_for_status()
-        data = resp.json()
+    data = await _post_json(
+        url,
+        params={"key": settings.gemini_api_key},
+        json={
+            "systemInstruction": {"parts": [{"text": system}]},
+            "contents": contents,
+            "generationConfig": {"temperature": 0.3},
+        },
+    )
     try:
-        return data["candidates"][0]["content"]["parts"][0]["text"].strip()
+        parts = data["candidates"][0]["content"]["parts"]
     except (KeyError, IndexError) as exc:
         raise AIError(f"unexpected Gemini response: {data}") from exc
+    # Newer models may return multiple parts (e.g. a thought part + the answer);
+    # keep every visible text segment.
+    text = "\n".join(p["text"] for p in parts if isinstance(p, dict) and p.get("text")).strip()
+    if not text:
+        raise AIError(f"empty Gemini response: {data}")
+    return text
