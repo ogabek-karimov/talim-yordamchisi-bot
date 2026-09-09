@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+  <title>Ta'lim yordamchisi</title>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+  <div id="app">
+    <header id="topbar" hidden>
+      <div class="brand" id="brandTitle">Ta'lim yordamchisi</div>
+      <div class="lang-picker">
+        <label for="langSelect" class="sr-only">Language</label>
+        <select id="langSelect"></select>
+      </div>
+    </header>
+
+    <div id="subBanner" class="sub-banner" hidden></div>
+
+    <main id="screen">
+      <div id="loading" class="center">
+        <div class="spinner"></div>
+        <p id="loadingText">Yuklanmoqda…</p>
+      </div>
+    </main>
+
+    <nav id="tabbar" hidden></nav>
+  </div>
+
+  <template id="tpl-error">
+    <div class="center pad">
+      <p class="err-msg"></p>
+      <button class="btn primary retry-btn"></button>
+    </div>
+  </template>
+
+  <script src="./app.js"></script>
+</body>
+</html>

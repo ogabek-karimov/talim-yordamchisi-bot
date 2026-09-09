@@ -1,0 +1,52 @@
+# Render Blueprint — https://render.com/docs/blueprint-spec
+# Create a new "Blueprint" service from this repo, then fill in the env vars
+# marked `sync: false` in the Render dashboard.
+services:
+  - type: web
+    name: talim-yordamchisi-bot
+    runtime: docker
+    plan: free
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      - key: BOT_TOKEN
+        sync: false
+      - key: OWNER_ID
+        value: "890701906"
+      - key: WEBHOOK_BASE
+        sync: false            # e.g. https://talim-yordamchisi-bot.onrender.com
+      - key: WEBHOOK_SECRET
+        generateValue: true
+      - key: SESSION_SECRET
+        generateValue: true
+      - key: WEBAPP_URL
+        sync: false            # leave blank to default to ${WEBHOOK_BASE}/app
+      - key: USE_POLLING
+        value: "0"
+      - key: DATABASE_URL
+        sync: false            # postgresql+asyncpg://...  (Neon / Supabase free tier)
+      - key: DEFAULT_LANGUAGE
+        value: uz
+      - key: AI_PROVIDER
+        value: groq
+      - key: AI_FALLBACK
+        sync: false
+      - key: OPENAI_BASE_URL
+        value: https://api.groq.com/openai/v1
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: OPENAI_MODEL
+        value: llama-3.3-70b-versatile
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: GEMINI_MODEL
+        value: gemini-2.0-flash
+      - key: OLLAMA_BASE_URL
+        sync: false
+      - key: OLLAMA_MODEL
+        value: llama3.1
+      - key: AI_RATE_PER_HOUR
+        value: "20"
+      - key: MAX_UPLOAD_MB
+        value: "8"
