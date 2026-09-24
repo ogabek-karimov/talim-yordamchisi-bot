@@ -13,7 +13,7 @@ services:
       - key: BOT_TOKEN
         sync: false
       - key: OWNER_ID
-        value: "890701906"
+        sync: false            # your numeric Telegram user id
       - key: WEBHOOK_BASE
         sync: false            # e.g. https://talim-yordamchisi-bot.onrender.com
       - key: WEBHOOK_SECRET

@@ -94,7 +94,7 @@ Token setup paytida ochiq matnda yuborilgan. [@BotFather](https://t.me/BotFather
    | Kalit | Qiymat |
    |---|---|
    | `BOT_TOKEN` | BotFather'dan yangi token |
-   | `OWNER_ID` | `890701906` (allaqachon o'rnatilgan) |
+   | `OWNER_ID` | Sizning Telegram ID'ingiz (raqam, @userinfobot orqali bilib olasiz) |
    | `WEBHOOK_BASE` | `https://<xizmat-nomi>.onrender.com` |
    | `DATABASE_URL` | Neon/Supabase connection string |
    | `OPENAI_API_KEY` | Groq kaliti ([console.groq.com](https://console.groq.com)) — ixtiyoriy |
